@@ -3,10 +3,11 @@ package holdem;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
-import java.util.stream.Stream;
 
 public final class App {
 
@@ -19,12 +20,17 @@ public final class App {
     }
 
     public void processDeal(String dealString) {
-        Hand[] deal = parseDeal(dealString);
-        evaluateAndSortDealHands(deal);
-        printFormattedSortedHands(deal);
+        try {
+            List<Hand> deal = parseDeal(dealString);
+            evaluateAndSortDealHands(deal);
+            printFormattedSortedHands(deal);
+        } catch (RuntimeException e) {
+            String message = e.getMessage();
+            System.out.println(message + ", skipping line: " + dealString);
+        }
     }
 
-    public Hand[] parseDeal(String dealString) {
+    public List<Hand> parseDeal(String dealString) {
         Card[] boardCards = getBoardCards(dealString);
         return getHands(dealString, boardCards);
     }
@@ -39,30 +45,36 @@ public final class App {
         return result;
     }
 
-    public Hand[] getHands(String dealString, Card[] boardCards) {
+    public List<Hand> getHands(String dealString, Card[] boardCards) {
         String handsString = dealString.substring(10);
-        int numberOfHands = handsString.length() / (NUMBER_OF_CHARS_IN_HOLDEM_HAND + 1);
         Arrays.sort(boardCards); // sort board cards once for all hands
         Scanner handsScanner = new Scanner(handsString);
-        Hand[] hands = new Hand[numberOfHands];
-        for (int i = 0; i < numberOfHands; i++) {
+        List<Hand> hands = new ArrayList<>();
+        while (handsScanner.hasNext()) {
             String handString = handsScanner.next();
+            checkHandString(handString);
             Card card1 = new Card(handString.substring(0, 2));
             Card card2 = new Card(handString.substring(2));
-            hands[i] = new Hand(card1, card2, boardCards);
+            hands.add(new Hand(card1, card2, boardCards));
         }
         handsScanner.close();
         return hands;
     }
 
-    private void evaluateAndSortDealHands(Hand[] deal) {
-        Stream.of(deal).forEach(hand -> {
-            hand.evaluateHand();
-        });
-        Arrays.sort(deal);
+    private void checkHandString(String handString) {
+        if (handString.length() != NUMBER_OF_CHARS_IN_HOLDEM_HAND) {
+            throw new RuntimeException("Invalid hand string encountered: " + handString);
+        }
     }
 
-    private void printFormattedSortedHands(Hand[] deal) {
+    private void evaluateAndSortDealHands(List<Hand> deal) {
+        deal.stream().forEach(hand -> {
+            hand.evaluateHand();
+        });
+        Collections.sort(deal);
+    }
+
+    private void printFormattedSortedHands(List<Hand> deal) {
         StringBuilder outputBuilder = new StringBuilder();
         String separator = "";
         Hand previousHand = null;
