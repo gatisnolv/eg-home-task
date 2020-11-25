@@ -2,6 +2,14 @@
 
 ## Texas hold'em hand evaluator
 
+## Task description:
+
+Task description: https://github.com/gatisnolv/eg-home-task/blob/master/Scala%20Bootcamp_Home%20task.pdf
+
+### Update: Scala implementation, done as part of the bootcamp:
+
+https://github.com/gatisnolv/poker-hands-scala
+
 ## Prerequisites:
 
 1. JDK
